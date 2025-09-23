@@ -1,0 +1,9 @@
+{
+  "name": "eden-blog-proxy",
+  "compatibility_date": "2025-09-23",
+  "main": "src/index.js",
+  "routes": [
+    { "pattern": "eden.studio/blog*", "zone_name": "eden.studio" },
+    { "pattern": "blog.eden.studio/*", "zone_name": "eden.studio" } // 301 → eden.studio/blog/*
+  ]
+}
