@@ -38,10 +38,17 @@ export default {
       }));
     }
 
-    // Everything else: passthrough to CloudFront origin
-    // When Cloudflare proxy is enabled, fetch(request) forwards to the origin
-    // configured in DNS (d39ldazvr5yfb8.cloudfront.net)
-    // IMPORTANT: Set Cloudflare SSL/TLS mode to "Full" to avoid SSL conflicts
-    return fetch(request);
+    // Everything else: forward directly to CloudFront to avoid redirect rules
+    // Build CloudFront URL explicitly
+    const cloudfrontUrl = new URL(request.url);
+    cloudfrontUrl.hostname = "d39ldazvr5yfb8.cloudfront.net";
+    
+    // Forward to CloudFront, preserving the original path
+    return fetch(cloudfrontUrl.toString(), {
+      method: request.method,
+      headers: request.headers,
+      body: request.body,
+      redirect: "follow"
+    });
   }
 };
