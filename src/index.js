@@ -1,3 +1,11 @@
+/**
+ * Cloudflare Worker for eden.studio
+ * 
+ * Flow:
+ * 1. ALL traffic to eden.studio goes through this Worker first (when proxy enabled)
+ * 2. /blog/* routes → Proxy to Ghost.io (eden-studio-sf.ghost.io)
+ * 3. Everything else → Pass through to CloudFront origin (configured in DNS)
+ */
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -7,7 +15,7 @@ export default {
       return Response.redirect(`${url.origin}/blog/`, 301);
     }
 
-    // Proxy only /blog/* on eden.studio
+    // Route /blog/* to Ghost.io
     if (url.hostname === "eden.studio" && url.pathname.startsWith("/blog")) {
       // IMPORTANT: Keep /blog in the upstream path (Ghost will be configured for /blog)
       const upstream = new URL(request.url);
@@ -30,7 +38,10 @@ export default {
       }));
     }
 
-    // Everything else: passthrough
+    // Everything else: passthrough to CloudFront origin
+    // When Cloudflare proxy is enabled, fetch(request) forwards to the origin
+    // configured in DNS (d39ldazvr5yfb8.cloudfront.net)
+    // IMPORTANT: Set Cloudflare SSL/TLS mode to "Full" to avoid SSL conflicts
     return fetch(request);
   }
 };
